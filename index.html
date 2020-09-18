@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>email</title>
+		<style>
+			input {
+				width: 500px;
+				border-width: 2px;
+				padding: 3px;
+			}
+			ul {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+			}
+			ul li {
+				background-color: #f4f5f6;
+				width: 500px;
+				border: 2px solid transparent;
+				padding: 3px;
+				user-select: none;
+				z-index: 10;
+			}
+		</style>
+	</head>
+	<body onload="load()">
+		<div class="wrapper">
+			<input id="email-input" type="text" placeholder="please enter your email address">
+			<ul id="email-sug-wrapper" class="email-sug">
+				
+			</ul>
+		</div>
+		<script>
+			let input = document.getElementById('email-input')
+			let sug = document.getElementById('email-sug-wrapper')
+			let lis = document.getElementsByTagName('li')
+			let suffixes=['163.com', 'gmail.com', '126.com', 'qq.com', '263.net']
+
+			let nowselected = -1
+
+			load = function() {
+				input.focus()
+			}
+
+			input.oninput = function() {
+				addtip()
+				showtips(getinput()!='')
+				lis_setup()
+			}
+
+			input.onkeydown = function(e) {
+				let keynum
+				if (window.event)
+					keynum = e.keyCode
+				else if (e.which)
+					keynum = e.which
+
+				switch(keynum) {
+					case 13:	//enter
+						if (nowselected == -1)
+							console.log('submit email: ' + input.value)
+						else
+							select(nowselected)
+						break
+					case 27:	//esc
+						input.select()
+						break
+					case 38:	//up
+						if (getinput() != '' && nowselected != -1) {
+							let len = genstr().length
+							nowselected = (nowselected+4)%len
+							drawing(nowselected)
+							showtips(true)
+						}
+						break
+					case 40:	//down
+						if (getinput() != '') {
+							let len = genstr().length
+							nowselected = (nowselected+1)%len
+							drawing(nowselected)
+							showtips(true)
+						}
+						break
+					default:
+						break
+				}
+			}
+
+			function getinput() {
+				let userstr = input.value
+				while(userstr[0] == ' ')
+					userstr = userstr.substr(1,userstr.length)
+				while(userstr[userstr.length-1] == ' ')
+					userstr = userstr.substr(0,userstr.length-1)
+				return userstr
+			}
+
+			function genstr() {
+				let r = []
+				let posfix = getinput()
+				let suf = ''
+				let flag = false
+				if (posfix.indexOf('@') != -1) {
+					suf = posfix.substr(posfix.indexOf('@')+1,posfix.length)
+					posfix = posfix.substr(0,posfix.indexOf('@'))
+					flag = true
+				}
+				for (let suffix of suffixes) {
+					if (flag = false || suffix.indexOf(suf) != -1)
+						r.push(posfix+ '@' + suffix)
+				}
+				if (r.length == 0) {
+					for (let suffix of suffixes) {
+						r.push(posfix + '@' + suffix)
+					}
+				}
+
+				return r
+			}
+
+			function addtip() {
+				sug.innerHTML = ''
+				let gstr = genstr()
+				for (let i=0;i<gstr.length;i++) {
+					let tips = gstr[i]
+						sug.innerHTML += `<li>${tips}</li>`
+					console.log('heyy')
+				}
+			}
+
+			function showtips(f) {
+				if (f==false) {
+					sug.style.display = "none"
+				}
+				else
+					sug.style.display = "inline"
+			}
+
+			function drawing(index) {
+				lis = document.getElementsByTagName('li')
+				for (let i=0;i<lis.length;i++) {
+					if (i == nowselected)
+						lis[i].style.backgroundColor = "#e4e5e6"
+					else
+						lis[i].style.backgroundColor = "#f4f5f6"
+				}
+			}
+
+			function select(li) {
+				lis = document.getElementsByTagName('li')
+				input.value = lis[li].innerHTML
+				showtips(false)
+				input.focus()
+				nowselected = -1
+			}
+
+			function lis_setup() {
+				lis = document.getElementsByTagName('li')
+				for (let li=0;li<lis.length;li++) {
+					lis[li].onclick = function() {
+						select(nowselected)
+					}
+					lis[li].onmouseover = function() {
+						nowselected = li
+						drawing(nowselected)
+					}
+				}
+			}
+
+		</script>
+	</body>
+</html>
